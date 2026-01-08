@@ -1,0 +1,88 @@
+<!-- templates/add_property.html -->
+{% extends "base.html" %}
+
+{% block content %}
+<div class="section">
+    <div class="container">
+        <a href="/host/dashboard" style="color: var(--gray); text-decoration: none; margin-bottom: 16px; display: inline-block;">
+            ← Back to dashboard
+        </a>
+        
+        <div class="card" style="max-width: 800px; margin: 0 auto; padding: 48px;">
+            <h1 style="font-size: 2rem; margin-bottom: 32px;">Add New Property</h1>
+            
+            <form method="POST">
+                <div class="form-group">
+                    <label>Property Title</label>
+                    <input type="text" name="title" required placeholder="e.g., Cozy Beach House">
+                </div>
+                
+                <div class="form-group">
+                    <label>Description</label>
+                    <textarea name="description" rows="4" required 
+                              placeholder="Describe your property, what makes it special..."></textarea>
+                </div>
+                
+                <div class="form-group">
+                    <label>Location</label>
+                    <input type="text" name="location" required placeholder="City, State/Country">
+                </div>
+                
+                <div class="grid grid-2">
+                    <div class="form-group">
+                        <label>Price per Night ($)</label>
+                        <input type="number" name="price" step="0.01" required placeholder="150">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Property Type</label>
+                        <select name="property_type" required>
+                            <option value="">Select type</option>
+                            <option value="Apartment">Apartment</option>
+                            <option value="House">House</option>
+                            <option value="Villa">Villa</option>
+                            <option value="Cabin">Cabin</option>
+                            <option value="Bungalow">Bungalow</option>
+                            <option value="Condo">Condo</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="grid grid-3">
+                    <div class="form-group">
+                        <label>Bedrooms</label>
+                        <input type="number" name="bedrooms" required min="1" value="1">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Bathrooms</label>
+                        <input type="number" name="bathrooms" required min="1" value="1">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Max Guests</label>
+                        <input type="number" name="max_guests" required min="1" value="2">
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label>Amenities (comma-separated)</label>
+                    <input type="text" name="amenities" 
+                           placeholder="WiFi, Pool, Kitchen, Parking, Air Conditioning">
+                </div>
+                
+                <div class="form-group">
+                    <label>Image URL</label>
+                    <input type="url" name="image_url" 
+                           placeholder="https://example.com/image.jpg">
+                    <small style="color: var(--gray); display: block; margin-top: 4px;">
+                        Provide a direct link to your property image
+                    </small>
+                </div>
+                
+                <button type="submit" class="btn btn-primary" style="width: 100%;">Add Property</button>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
