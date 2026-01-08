@@ -1,0 +1,84 @@
+<!-- templates/index.html -->
+{% extends "base.html" %}
+
+{% block content %}
+<div class="hero">
+    <div class="container">
+        <h1>Find Your Perfect Getaway</h1>
+        <p>Discover unique places to stay around the world</p>
+        
+        <form action="/search" method="GET" class="search-box">
+            <input type="text" name="location" placeholder="Where are you going?" required>
+            <input type="date" name="check_in" placeholder="Check-in">
+            <input type="date" name="check_out" placeholder="Check-out">
+            <input type="number" name="guests" placeholder="Guests" min="1" value="1" style="max-width: 120px;">
+            <button type="submit">🔍 Search</button>
+        </form>
+    </div>
+</div>
+
+<div class="section">
+    <div class="container">
+        <h2 class="section-title">Featured Properties</h2>
+        
+        <div class="grid grid-3">
+            {% for data in properties %}
+            <div class="card property-card" onclick="location.href='/property/{{ data.property.id }}'">
+                <img src="{{ data.property.image_url }}" alt="{{ data.property.title }}" class="property-image">
+                <div class="property-content">
+                    <div class="property-location">📍 {{ data.property.location }}</div>
+                    <h3 class="property-title">{{ data.property.title }}</h3>
+                    
+                    <div class="rating">
+                        <span class="rating-stars">
+                            {% for i in range(5) %}
+                                {% if i < data.avg_rating|round|int %}⭐{% else %}☆{% endif %}
+                            {% endfor %}
+                        </span>
+                        <span style="color: var(--gray); font-size: 14px;">
+                            ({{ data.review_count }} reviews)
+                        </span>
+                    </div>
+                    
+                    <div style="display: flex; gap: 16px; margin: 12px 0; color: var(--gray); font-size: 14px;">
+                        <span>🛏️ {{ data.property.bedrooms }} beds</span>
+                        <span>🚿 {{ data.property.bathrooms }} baths</span>
+                        <span>👥 {{ data.property.max_guests }} guests</span>
+                    </div>
+                    
+                    <div class="property-price">
+                        ${{ "%.0f"|format(data.property.price_per_night) }} <span>/ night</span>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+<div class="section" style="background: var(--light-gray);">
+    <div class="container">
+        <h2 class="section-title">Why Choose StayNest?</h2>
+        
+        <div class="grid grid-3">
+            <div class="card" style="text-align: center; padding: 40px 20px;">
+                <div style="font-size: 3rem; margin-bottom: 16px;">🏠</div>
+                <h3 style="margin-bottom: 12px;">Unique Homes</h3>
+                <p style="color: var(--gray);">Find spaces that are more than just a place to sleep</p>
+            </div>
+            
+            <div class="card" style="text-align: center; padding: 40px 20px;">
+                <div style="font-size: 3rem; margin-bottom: 16px;">💰</div>
+                <h3 style="margin-bottom: 12px;">Best Prices</h3>
+                <p style="color: var(--gray);">No hidden fees. What you see is what you pay</p>
+            </div>
+            
+            <div class="card" style="text-align: center; padding: 40px 20px;">
+                <div style="font-size: 3rem; margin-bottom: 16px;">🛡️</div>
+                <h3 style="margin-bottom: 12px;">Secure Booking</h3>
+                <p style="color: var(--gray);">Your data is encrypted and protected</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
