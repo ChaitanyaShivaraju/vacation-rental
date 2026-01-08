@@ -1,0 +1,132 @@
+<!-- templates/host_dashboard.html -->
+{% extends "base.html" %}
+
+{% block content %}
+<div class="section">
+    <div class="container">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 40px;">
+            <div>
+                <h1 class="section-title" style="margin: 0;">Host Dashboard</h1>
+                <p style="color: var(--gray); font-size: 18px;">Manage your properties and bookings</p>
+            </div>
+            <a href="/host/add-property" class="btn btn-primary">➕ Add New Property</a>
+        </div>
+        
+        <!-- Stats Cards -->
+        <div class="grid grid-3" style="margin-bottom: 48px;">
+            <div class="card" style="padding: 24px; text-align: center;">
+                <div style="font-size: 3rem; margin-bottom: 8px;">🏠</div>
+                <div style="font-size: 2rem; font-weight: 700; color: var(--primary);">{{ properties|length }}</div>
+                <div style="color: var(--gray);">Total Properties</div>
+            </div>
+            
+            <div class="card" style="padding: 24px; text-align: center;">
+                <div style="font-size: 3rem; margin-bottom: 8px;">📅</div>
+                <div style="font-size: 2rem; font-weight: 700; color: var(--secondary);">{{ bookings|length }}</div>
+                <div style="color: var(--gray);">Total Bookings</div>
+            </div>
+            
+            <div class="card" style="padding: 24px; text-align: center;">
+                <div style="font-size: 3rem; margin-bottom: 8px;">💰</div>
+                <div style="font-size: 2rem; font-weight: 700; color: #FFD700;">
+                    ${{ "%.0f"|format(bookings|sum(attribute='total_price') or 0) }}
+                </div>
+                <div style="color: var(--gray);">Total Earnings</div>
+            </div>
+        </div>
+        
+        <!-- Properties Section -->
+        <div style="margin-bottom: 48px;">
+            <h2 style="font-size: 1.5rem; margin-bottom: 24px;">Your Properties</h2>
+            
+            {% if properties %}
+                <div class="grid grid-2">
+                    {% for property in properties %}
+                    <div class="card" style="display: flex; gap: 16px; padding: 20px;">
+                        <img src="{{ property.image_url }}" alt="{{ property.title }}" 
+                             style="width: 200px; height: 150px; object-fit: cover; border-radius: 12px;">
+                        
+                        <div style="flex: 1;">
+                            <h3 style="margin-bottom: 8px;">{{ property.title }}</h3>
+                            <p style="color: var(--gray); font-size: 14px; margin-bottom: 8px;">
+                                📍 {{ property.location }}
+                            </p>
+                            <p style="font-weight: 700; font-size: 1.2rem; color: var(--primary); margin-bottom: 8px;">
+                                ${{ "%.0f"|format(property.price_per_night) }} / night
+                            </p>
+                            <div style="display: flex; gap: 12px; color: var(--gray); font-size: 14px;">
+                                <span>🛏️ {{ property.bedrooms }}</span>
+                                <span>🚿 {{ property.bathrooms }}</span>
+                                <span>👥 {{ property.max_guests }}</span>
+                            </div>
+                            <div style="margin-top: 12px;">
+                                <span style="padding: 4px 12px; background: {% if property.available %}#E8F5E9{% else %}#FFEBEE{% endif %}; 
+                                             color: {% if property.available %}#2E7D32{% else %}#C62828{% endif %}; 
+                                             border-radius: 12px; font-size: 12px; font-weight: 600;">
+                                    {{ 'Available' if property.available else 'Unavailable' }}
+                                </span>
+                            </div>
+                        </div>
+                        
+                        <a href="/property/{{ property.id }}" class="btn btn-outline" style="align-self: flex-start;">View</a>
+                    </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="card" style="text-align: center; padding: 60px 20px;">
+                    <div style="font-size: 4rem; margin-bottom: 20px;">🏠</div>
+                    <h3 style="margin-bottom: 12px;">No properties yet</h3>
+                    <p style="color: var(--gray); margin-bottom: 24px;">Start by adding your first property</p>
+                    <a href="/host/add-property" class="btn btn-primary">Add Property</a>
+                </div>
+            {% endif %}
+        </div>
+        
+        <!-- Recent Bookings -->
+        <div>
+            <h2 style="font-size: 1.5rem; margin-bottom: 24px;">Recent Bookings</h2>
+            
+            {% if bookings %}
+                <div class="card" style="overflow-x: auto;">
+                    <table style="width: 100%; border-collapse: collapse;">
+                        <thead style="background: var(--light-gray);">
+                            <tr>
+                                <th style="padding: 16px; text-align: left;">Property</th>
+                                <th style="padding: 16px; text-align: left;">Guest</th>
+                                <th style="padding: 16px; text-align: left;">Check-in</th>
+                                <th style="padding: 16px; text-align: left;">Check-out</th>
+                                <th style="padding: 16px; text-align: left;">Total</th>
+                                <th style="padding: 16px; text-align: left;">Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for booking in bookings[:10] %}
+                            <tr style="border-bottom: 1px solid var(--border);">
+                                <td style="padding: 16px;">{{ booking.property.title }}</td>
+                                <td style="padding: 16px;">{{ booking.guest.username }}</td>
+                                <td style="padding: 16px;">{{ booking.check_in.strftime('%b %d, %Y') }}</td>
+                                <td style="padding: 16px;">{{ booking.check_out.strftime('%b %d, %Y') }}</td>
+                                <td style="padding: 16px; font-weight: 600;">${{ "%.2f"|format(booking.total_price) }}</td>
+                                <td style="padding: 16px;">
+                                    <span style="padding: 4px 12px; border-radius: 12px; font-size: 12px; font-weight: 600;
+                                                 background: {% if booking.status == 'confirmed' %}#E8F5E9{% elif booking.status == 'completed' %}#E3F2FD{% else %}#FFF3E0{% endif %};
+                                                 color: {% if booking.status == 'confirmed' %}#2E7D32{% elif booking.status == 'completed' %}#1565C0{% else %}#E65100{% endif %};">
+                                        {{ booking.status|upper }}
+                                    </span>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="card" style="text-align: center; padding: 60px 20px;">
+                    <div style="font-size: 4rem; margin-bottom: 20px;">📅</div>
+                    <h3 style="margin-bottom: 12px;">No bookings yet</h3>
+                    <p style="color: var(--gray);">Bookings will appear here once guests reserve your properties</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
