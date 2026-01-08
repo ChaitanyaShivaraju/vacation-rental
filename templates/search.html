@@ -1,0 +1,85 @@
+<!-- templates/search.html -->
+{% extends "base.html" %}
+
+{% block content %}
+<div class="section">
+    <div class="container">
+        <div style="margin-bottom: 32px;">
+            <h1 class="section-title">Search Results</h1>
+            <p style="color: var(--gray); font-size: 18px;">
+                Found {{ properties|length }} properties 
+                {% if location %}in {{ location }}{% endif %}
+            </p>
+        </div>
+        
+        <!-- Search Filters -->
+        <div class="card" style="padding: 24px; margin-bottom: 32px;">
+            <form action="/search" method="GET" style="display: flex; gap: 16px; flex-wrap: wrap; align-items: end;">
+                <div class="form-group" style="flex: 1; min-width: 200px; margin: 0;">
+                    <label>Location</label>
+                    <input type="text" name="location" value="{{ location }}" placeholder="City or region">
+                </div>
+                
+                <div class="form-group" style="flex: 1; min-width: 150px; margin: 0;">
+                    <label>Check-in</label>
+                    <input type="date" name="check_in" value="{{ check_in }}">
+                </div>
+                
+                <div class="form-group" style="flex: 1; min-width: 150px; margin: 0;">
+                    <label>Check-out</label>
+                    <input type="date" name="check_out" value="{{ check_out }}">
+                </div>
+                
+                <div class="form-group" style="max-width: 120px; margin: 0;">
+                    <label>Guests</label>
+                    <input type="number" name="guests" value="{{ guests }}" min="1">
+                </div>
+                
+                <button type="submit" class="btn btn-primary">Apply Filters</button>
+            </form>
+        </div>
+        
+        {% if properties %}
+            <div class="grid grid-3">
+                {% for data in properties %}
+                <div class="card property-card" onclick="location.href='/property/{{ data.property.id }}'">
+                    <img src="{{ data.property.image_url }}" alt="{{ data.property.title }}" class="property-image">
+                    <div class="property-content">
+                        <div class="property-location">📍 {{ data.property.location }}</div>
+                        <h3 class="property-title">{{ data.property.title }}</h3>
+                        
+                        <div class="rating">
+                            <span class="rating-stars">
+                                {% for i in range(5) %}
+                                    {% if i < data.avg_rating|round|int %}⭐{% else %}☆{% endif %}
+                                {% endfor %}
+                            </span>
+                            <span style="color: var(--gray); font-size: 14px;">
+                                ({{ data.review_count }} reviews)
+                            </span>
+                        </div>
+                        
+                        <div style="display: flex; gap: 16px; margin: 12px 0; color: var(--gray); font-size: 14px;">
+                            <span>🛏️ {{ data.property.bedrooms }} beds</span>
+                            <span>🚿 {{ data.property.bathrooms }} baths</span>
+                            <span>👥 {{ data.property.max_guests }} guests</span>
+                        </div>
+                        
+                        <div class="property-price">
+                            ${{ "%.0f"|format(data.property.price_per_night) }} <span>/ night</span>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="card" style="text-align: center; padding: 60px 20px;">
+                <div style="font-size: 4rem; margin-bottom: 20px;">🔍</div>
+                <h3 style="margin-bottom: 12px;">No properties found</h3>
+                <p style="color: var(--gray); margin-bottom: 24px;">Try adjusting your search filters</p>
+                <a href="/" class="btn btn-primary">View All Properties</a>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
