@@ -1,0 +1,203 @@
+<!-- templates/property_detail.html -->
+{% extends "base.html" %}
+
+{% block extra_styles %}
+<script src="https://js.stripe.com/v3/"></script>
+<style>
+    .property-gallery {
+        display: grid;
+        grid-template-columns: 2fr 1fr;
+        gap: 8px;
+        border-radius: 16px;
+        overflow: hidden;
+        height: 500px;
+    }
+    
+    .property-gallery img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+    
+    .amenity-badge {
+        display: inline-block;
+        padding: 8px 16px;
+        background: var(--light-gray);
+        border-radius: 20px;
+        margin: 4px;
+        font-size: 14px;
+    }
+    
+    .booking-card {
+        position: sticky;
+        top: 100px;
+        background: white;
+        border: 1px solid var(--border);
+        border-radius: 16px;
+        padding: 24px;
+        box-shadow: 0 6px 20px rgba(0,0,0,0.1);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="section">
+    <div class="container">
+        <a href="/" style="color: var(--gray); text-decoration: none; margin-bottom: 16px; display: inline-block;">
+            ← Back to properties
+        </a>
+        
+        <h1 style="font-size: 2.5rem; margin-bottom: 16px;">{{ property.title }}</h1>
+        
+        <div style="display: flex; gap: 24px; align-items: center; margin-bottom: 24px;">
+            <div class="rating">
+                <span class="rating-stars">
+                    {% for i in range(5) %}
+                        {% if i < avg_rating|round|int %}⭐{% else %}☆{% endif %}
+                    {% endfor %}
+                </span>
+                <span style="color: var(--gray);">{{ "%.1f"|format(avg_rating) }} ({{ reviews|length }} reviews)</span>
+            </div>
+            <div style="color: var(--gray);">📍 {{ property.location }}</div>
+        </div>
+        
+        <div class="property-gallery">
+            <img src="{{ property.image_url }}" alt="{{ property.title }}">
+            <div style="display: grid; grid-template-rows: 1fr 1fr; gap: 8px;">
+                <img src="{{ property.image_url }}" alt="{{ property.title }}">
+                <img src="{{ property.image_url }}" alt="{{ property.title }}">
+            </div>
+        </div>
+        
+        <div style="display: grid; grid-template-columns: 1.5fr 1fr; gap: 40px; margin-top: 40px;">
+            <div>
+                <div style="border-bottom: 1px solid var(--border); padding-bottom: 24px; margin-bottom: 24px;">
+                    <h2 style="font-size: 1.5rem; margin-bottom: 12px;">{{ property.property_type }} hosted by {{ property.host.username }}</h2>
+                    <div style="color: var(--gray); display: flex; gap: 16px;">
+                        <span>👥 {{ property.max_guests }} guests</span>
+                        <span>🛏️ {{ property.bedrooms }} bedrooms</span>
+                        <span>🚿 {{ property.bathrooms }} bathrooms</span>
+                    </div>
+                </div>
+                
+                <div style="border-bottom: 1px solid var(--border); padding-bottom: 24px; margin-bottom: 24px;">
+                    <h3 style="margin-bottom: 16px;">About this place</h3>
+                    <p style="color: var(--gray); line-height: 1.8;">{{ property.description }}</p>
+                </div>
+                
+                <div style="border-bottom: 1px solid var(--border); padding-bottom: 24px; margin-bottom: 24px;">
+                    <h3 style="margin-bottom: 16px;">What this place offers</h3>
+                    <div>
+                        {% for amenity in property.amenities.split(',') %}
+                            <span class="amenity-badge">✨ {{ amenity.strip() }}</span>
+                        {% endfor %}
+                    </div>
+                </div>
+                
+                <div>
+                    <h3 style="margin-bottom: 24px;">Reviews</h3>
+                    {% if reviews %}
+                        {% for review in reviews[:5] %}
+                        <div class="card" style="padding: 20px; margin-bottom: 16px;">
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                                <strong>{{ review.reviewer.username }}</strong>
+                                <span class="rating-stars">
+                                    {% for i in range(review.rating) %}⭐{% endfor %}
+                                </span>
+                            </div>
+                            <p style="color: var(--gray);">{{ review.comment }}</p>
+                            <small style="color: var(--gray);">{{ review.created_at.strftime('%B %d, %Y') }}</small>
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                        <p style="color: var(--gray);">No reviews yet. Be the first to review!</p>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <div>
+                <div class="booking-card">
+                    <div style="font-size: 1.5rem; font-weight: 700; margin-bottom: 24px;">
+                        ${{ "%.0f"|format(property.price_per_night) }} <span style="font-size: 1rem; font-weight: 400; color: var(--gray);">/ night</span>
+                    </div>
+                    
+                    {% if session.user_id %}
+                        <form id="booking-form">
+                            <div class="form-group">
+                                <label>Check-in</label>
+                                <input type="date" name="check_in" required>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label>Check-out</label>
+                                <input type="date" name="check_out" required>
+                            </div>
+                            
+                            <button type="submit" class="btn btn-primary" style="width: 100%;">Reserve</button>
+                        </form>
+                        
+                        <div id="payment-element" style="margin-top: 20px; display: none;"></div>
+                        <button id="submit-payment" class="btn btn-primary" style="width: 100%; margin-top: 16px; display: none;">Complete Payment</button>
+                    {% else %}
+                        <a href="/login" class="btn btn-primary" style="width: 100%; text-align: center;">Login to Book</a>
+                    {% endif %}
+                    
+                    <p style="text-align: center; color: var(--gray); font-size: 14px; margin-top: 16px;">
+                        You won't be charged yet
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+const stripe = Stripe('{{ stripe_key }}');
+let elements, clientSecret;
+
+document.getElementById('booking-form')?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    
+    const formData = new FormData(e.target);
+    
+    try {
+        const response = await fetch('/book/{{ property.id }}', {
+            method: 'POST',
+            body: formData
+        });
+        
+        const data = await response.json();
+        
+        if (data.error) {
+            alert(data.error);
+            return;
+        }
+        
+        clientSecret = data.client_secret;
+        
+        elements = stripe.elements({ clientSecret });
+        const paymentElement = elements.create('payment');
+        paymentElement.mount('#payment-element');
+        
+        document.getElementById('payment-element').style.display = 'block';
+        document.getElementById('submit-payment').style.display = 'block';
+        document.getElementById('booking-form').style.display = 'none';
+    } catch (error) {
+        alert('Booking failed: ' + error.message);
+    }
+});
+
+document.getElementById('submit-payment')?.addEventListener('click', async () => {
+    const { error } = await stripe.confirmPayment({
+        elements,
+        confirmParams: {
+            return_url: window.location.origin + '/bookings'
+        }
+    });
+    
+    if (error) {
+        alert(error.message);
+    }
+});
+</script>
+{% endblock %}
